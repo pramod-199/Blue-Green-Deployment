@@ -52,6 +52,7 @@ rules:
       - replicationcontrollers
       - serviceaccounts
       - services
+      - statefulsets
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ```
 
