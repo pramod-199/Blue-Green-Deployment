@@ -1,46 +1,31 @@
 ---
-# Persistent Volume Claim
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-# MySQL StatefulSet
+# MySQL Deployment with Resource Requests
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: mysql
 spec:
-  serviceName: "mysql"
-  replicas: 1
   selector:
     matchLabels:
       app: mysql
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: mysql
     spec:
       containers:
-      - name: mysql
-        image: mysql:8
-        ports:
-        - containerPort: 3306
-          name: mysql
+      - image: mysql:8
+        name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
           value: "Test@123"
         - name: MYSQL_DATABASE
           value: "bankappdb"
-        volumeMounts:
-        - name: mysql-storage
-          mountPath: /var/lib/mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
         resources:
           requests:
             memory: "1Gi"
@@ -48,16 +33,8 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "1000m"
-  volumeClaimTemplates:
-  - metadata:
-      name: mysql-storage
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
 ---
-# Headless Service for StatefulSet
+# MySQL Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -65,7 +42,5 @@ metadata:
 spec:
   ports:
   - port: 3306
-    targetPort: 3306
-  clusterIP: None  # Headless service for stable DNS
   selector:
     app: mysql
